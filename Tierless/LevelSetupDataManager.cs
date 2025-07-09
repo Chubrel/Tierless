@@ -32,7 +32,7 @@ public class LevelSetupDataManager
     public void InitializeDefaults()
     {
         Add(new DefaultLevelSetupData(1, 1, 3.5f, 2, 2));
-        Add(new DefaultLevelSetupData(2, 2, 5f, 2, 2));
+        Add(new DefaultLevelSetupData(2, 2, 5f, 2, 3));
         Add(new DefaultLevelSetupData(3, 3, 6.5f, 2, 3));
         Add(new DefaultLevelSetupData(4, 4, 8f, 2, 4));
         Add(new DefaultLevelSetupData(5, 5, 9.5f, 2, 5));

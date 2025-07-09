@@ -2,25 +2,51 @@
 using System.Linq;
 using HarmonyLib;
 using UnityEngine;
+// ReSharper disable InconsistentNaming
 
 namespace Tierless;
 
 [HarmonyPatch(typeof(EnemyDirector))]
 public static class EnemyDirectorPatch
 {
-    public static void AddEnemies(ICollection<EnemyData> uniqueEnemies, int tier, IEnumerable<EnemySetup> enemySetups)
+    public static void AddEnemies(ICollection<EnemyData> uniqueEnemies, ICollection<GameObject> directors, int tier, IEnumerable<EnemySetup> enemySetups)
     {
+        // ReSharper disable once CollectionNeverUpdated.Local
+        // var directorData = new DefaultDictionary<EnemyName, EnemyWithDirector>(() => new EnemyWithDirector());
         foreach (var enemySetup in enemySetups)
         {
             foreach (var gameObject in enemySetup.spawnObjects)
             {
-                // Tierless.Logger.LogWarning(gameObject.name + " - " + EnemyName.IsEnemyGroup(gameObject.name));
-                if (EnemyName.IsEnemyGroup(gameObject.name))
-                    continue;
+                var name = gameObject.name;
                 
-                uniqueEnemies.Add(new EnemyData(gameObject, EnemySetupDataManager.Instance.GetOrDefault(gameObject.name, tier)));
+                if (EnemyName.IsEnemyGroup(name))
+                {
+                    continue;
+                }
+
+                var enemyName = EnemyName.FromAnyName(name);
+                if (EnemyName.IsEnemyDirector(name))
+                {
+                    directors.Add(gameObject);
+                    continue;
+                }
+                
+                // directorData[enemyName].Enemy = gameObject;
+                
+                var enemyData = new EnemyData(gameObject, EnemySetupDataManager.Instance.GetOrDefault(enemyName, tier));
+                uniqueEnemies.Add(enemyData);
             }
         }
+
+        // foreach (var entry in directorData)
+        // {
+        //     var enemyWithDirector = entry.Value;
+        //     
+        //     if (!enemyWithDirector.IsReady)
+        //         continue;
+        //     
+        //     enemyWithDirector.Set();
+        // }
     }
 
     public static EnemyDataContext ChooseEnemies(ICollection<EnemyData> uniqueEnemies)
@@ -34,21 +60,18 @@ public static class EnemyDirectorPatch
         int level = RunManager.instance.levelsCompleted + 1;
         var levelSetupData = LevelSetupDataManager.Instance.GetOrDefault(level);
 
-        // var notSelected = new RandomRemoveCollection<EnemyData>(uniqueEnemies);
         var maxEnemyTypeCountExclusive = levelSetupData.MaxEnemyTypeCountLimited(uniqueEnemies.Count) + 1;
         var enemyTypeCountToChoose = (Random.RandomRangeInt(levelSetupData.MinEnemyTypeCount, maxEnemyTypeCountExclusive) + Random.RandomRangeInt(levelSetupData.MinEnemyTypeCount, maxEnemyTypeCountExclusive)) / 2;
         var uniqueEnemiesList = uniqueEnemies.ToList();
         uniqueEnemiesList.Shuffle();
         var result = new EnemyDataContext();
-        for (var i = 0; i < uniqueEnemies.Count; i++)
+        foreach (var enemyData in uniqueEnemiesList)
         {
-            var enemyData = uniqueEnemiesList[i];
-            var countAndScore = result.CountAndScore(enemyData);
             var newTotalScore = result.TotalScore + enemyData.Data.ScoreWithFormula(1);
             if (newTotalScore > levelSetupData.TargetScore)
                 continue;
             
-            result.AddAndUpdate(enemyData, countAndScore.Count + 1, newTotalScore);
+            result.AddAndUpdate(enemyData, result.TypeCount + 1, newTotalScore);
             
             if (result.TypeCount >= enemyTypeCountToChoose)
                 break;
@@ -57,7 +80,6 @@ public static class EnemyDirectorPatch
         bool newAdded;
         do
         {
-            // Tierless.Instance.Logger.LogWarning(result.EnemyDataCounter.Count + " - " + result.TotalScore);
             newAdded = false;
             foreach (var enemyData in result.EnemyDataEnumerable())
             {
@@ -78,88 +100,38 @@ public static class EnemyDirectorPatch
         }
         
         return result;
-        
-        // // to remove
-        // var uniqueEnemiesToSort = uniqueEnemies.Aggregate(new List<EnemyData>(), (list, enemyData) =>
-        // {
-        //     list.Add(enemyData);
-        //     return list;
-        // });
-        // uniqueEnemiesToSort.Sort();
-        // var uniqueEnemiesSorted = uniqueEnemiesToSort.ToArray();
-        // var seen = new HashSet<OptimizedEnemyDataContext>();
-        // var results = new List<OptimizedEnemyDataContext>();
-        // var search = new 
-        // for (int i = 0; i < search.Length; i++)
-        // {
-        //     var countAndScore = uniqueEnemiesSorted[i].Data.EvaluateMaxCountWithScore(levelSetupData.TargetScore);
-        //     var countsAndScores = new CountAndScore[search.Length];
-        //     countsAndScores[i] = countAndScore;
-        //     search[i] = new OptimizedEnemyDataContext(countsAndScores, countAndScore.Score);
-        // }
-        // while (search.Length != 0)
-        // {
-        //     // var enemyDataContext = search.First();
-        //     search.Remove(result);
-        //     bool addedNew = false;
-        //
-        //     foreach (var enemyData in uniqueEnemies)
-        //     {
-        //         var newEnemyDataContext = result.CopyAndProcess(enemyData);
-        //         
-        //         if (!seen.Add(newEnemyDataContext) || newEnemyDataContext.TotalScore > levelSetupData.TargetScore || !levelSetupData.CheckEnemyTypeCount(result.EnemyDataCounter.Count))
-        //             continue;
-        //         
-        //         addedNew = true;
-        //         search.Add(newEnemyDataContext);
-        //     }
-        //
-        //     if (!addedNew)
-        //     {
-        //         results.Add(result);
-        //     }
-        // }
     }
     
     [HarmonyPrefix, HarmonyPatch(nameof(EnemyDirector.PickEnemies))]
     public static bool PickEnemies_Prefix(EnemyDirector __instance, List<EnemySetup> _enemiesList)
     {
-        // Tierless.Logger.LogWarning(__instance + " - " + _enemiesList);
         if (__instance.enemyListCurrent.Count != 0)
             return false;
+        
         var uniqueEnemies = new HashSet<EnemyData>();
-        AddEnemies(uniqueEnemies, 1, __instance.enemiesDifficulty1);
-        // Tierless.Logger.LogWarning(uniqueEnemies);
-        AddEnemies(uniqueEnemies, 2,  __instance.enemiesDifficulty2);
-        // Tierless.Logger.LogWarning(uniqueEnemies);
-        AddEnemies(uniqueEnemies, 3, __instance.enemiesDifficulty3);
-        // Tierless.Logger.LogWarning(uniqueEnemies.Count);
+        var directors = new List<GameObject>();
+        AddEnemies(uniqueEnemies, directors, 1, __instance.enemiesDifficulty1);
+        AddEnemies(uniqueEnemies, directors, 2,  __instance.enemiesDifficulty2);
+        AddEnemies(uniqueEnemies, directors, 3, __instance.enemiesDifficulty3);
         var finalSetup = ScriptableObject.CreateInstance<EnemySetup>();
         var enemyDataContext = ChooseEnemies(uniqueEnemies);
-        // Tierless.Logger.LogWarning(enemyDataContext);
         finalSetup.spawnObjects = enemyDataContext.EnemyDataCounter.Aggregate(new List<GameObject>(), (result, entry) => {
-            // Tierless.Logger.LogWarning(entry);
             for (int i = 0; i < entry.Value.Count; i++)
             {
                 result.Add(entry.Key.GameObject);
             }
             return result;
         });
-        // Tierless.Logger.LogWarning(finalSetup.spawnObjects.Count);
+        finalSetup.spawnObjects.AddRange(directors);
+        
         __instance.enemyList.Add(finalSetup);
-        // Tierless.Logger.LogWarning(__instance.enemyList);
         __instance.enemyListCurrent.Add(finalSetup);
-        // Tierless.Logger.LogWarning(__instance.enemyListCurrent);
-        // Code to execute for each PlayerController *before* Start() is called.
-        // Tierless.Logger.LogDebug($"{__instance} Start Prefix");
         return false;
     }
 
     [HarmonyPostfix, HarmonyPatch(nameof(EnemyDirector.AmountSetup))]
     public static void AmountSetup_Postfix(EnemyDirector __instance)
     {
-        // Tierless.Logger.LogWarning(__instance.totalAmount + " " + __instance.enemyListCurrent.Count);
         __instance.totalAmount = __instance.enemyListCurrent.Count;
-        // Tierless.Logger.LogWarning(__instance.totalAmount);
     }
 }
