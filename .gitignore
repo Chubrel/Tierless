@@ -33,3 +33,5 @@ BepInEx/doorstop_windows_x64.dll
 .vs/
 TestResults/
 *.binlog
+
+build
