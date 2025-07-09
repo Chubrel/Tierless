@@ -8,9 +8,11 @@ namespace Tierless;
 [BepInPlugin(Guid, Name, Version)]
 public class Tierless : BaseUnityPlugin
 {
-    public const string Version = "1.0.0";
+    public const string Version = "1.1.0";
     public const string Guid = "com.github.chubrel.Tierless";
     public const string Name = "Tierless";
+
+    public static readonly string SaveDirectorsID = FullID("SaveDirectors");
 
     public static Tierless Instance { get; private set; } = null!;
     public new ManualLogSource Logger => base.Logger;
@@ -20,7 +22,6 @@ public class Tierless : BaseUnityPlugin
     {
         Instance = this;
 
-        // Prevent the plugin from being deleted
         gameObject.transform.parent = null;
         gameObject.hideFlags = HideFlags.HideAndDontSave;
 
@@ -28,8 +29,6 @@ public class Tierless : BaseUnityPlugin
         EnemySetupDataManager.Instance.InitializeDefaults();
         
         Patch();
-
-        // Logger.LogInfo($"{Info.Metadata.GUID} v{Info.Metadata.Version} has loaded!");
     }
 
     public void Patch()
@@ -41,5 +40,10 @@ public class Tierless : BaseUnityPlugin
     public void Unpatch()
     {
         Harmony?.UnpatchSelf();
+    }
+
+    public static string FullID(string suffix)
+    {
+        return Utils.FullID(Guid, suffix);
     }
 }
