@@ -21,3 +21,13 @@ Got first package with Thunderstore CLI
 Initial Thunderstore release
 
 ---
+
+#### 1.1.3
+Removed development logs
+
+---
+
+#### 1.1.4
+Description added!
+
+---
