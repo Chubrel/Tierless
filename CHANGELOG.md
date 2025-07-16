@@ -31,3 +31,8 @@ Removed development logs
 Description added!
 
 ---
+
+#### 1.1.5
+Added changelog
+
+---

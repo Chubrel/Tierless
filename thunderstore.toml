@@ -3,7 +3,7 @@ schemaVersion = "0.0.1"
 
 
 [package]
-versionNumber = "1.1.4"
+versionNumber = "1.1.5"
 namespace = "Avocados"
 name = "Tierless"
 description = "Coming soon!.."
