@@ -1,10 +1,6 @@
 # Tierless
 
----
-
 ## Description
-
----
 
 A mod for R.E.P.O. that replaces the enemy tier system with one fully randomized pool of the every dangerous entity to make more fun and unique monster combinations!
 
@@ -13,8 +9,6 @@ The difficulty of the levels tries to be both close to the default settings and 
 ---
 
 ## Information
-
----
 
 Supports single- and multiplayer.
 

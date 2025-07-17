@@ -12,27 +12,32 @@ Released working version on GitHub
 
 ---
 
-#### 1.1.1
+## 1.1.1
 Got first package with Thunderstore CLI
 
 ---
 
-#### 1.1.2
+## 1.1.2
 Initial Thunderstore release
 
 ---
 
-#### 1.1.3
+## 1.1.3
 Removed development logs
 
 ---
 
-#### 1.1.4
+## 1.1.4
 Description added!
 
 ---
 
-#### 1.1.5
+## 1.1.5
 Added changelog
+
+---
+
+## 1.1.6
+Updated description
 
 ---

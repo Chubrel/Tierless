@@ -8,7 +8,7 @@ namespace Tierless;
 [BepInPlugin(Guid, Name, Version)]
 public class Tierless : BaseUnityPlugin
 {
-    public const string Version = "1.1.4";
+    public const string Version = "1.1.6";
     public const string Guid = "com.github.chubrel.Tierless";
     public const string Name = "Tierless";
 

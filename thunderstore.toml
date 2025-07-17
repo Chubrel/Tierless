@@ -3,10 +3,10 @@ schemaVersion = "0.0.1"
 
 
 [package]
-versionNumber = "1.1.5"
+versionNumber = "1.1.6"
 namespace = "Avocados"
 name = "Tierless"
-description = "Coming soon!.."
+description = "Replaces the enemy tier system with a fully randomized one!"
 websiteUrl = "https://github.com/Chubrel/Tierless"
 containsNsfwContent = false
 
@@ -26,7 +26,7 @@ dest = "./build"
 
 [publish]
 repository = "https://thunderstore.io"
-communities = [ "repo", ]
+communities = [ "repo" ]
 
 [publish.categories]
-riskofrain2 = [ "client-side", "server-side", ]
+repo = [ "client-side", "server-side", "mods", "enemies", "levels" ]
